@@ -8,15 +8,16 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    container: ubuntu:rolling
 
     steps:
 
       - uses: actions/checkout@v4
       - name: Compilation
         run: |
-          sudo dpkg --add-architecture i386 && sudo apt update
-          sudo apt install aptitude linux-libc-dev
-          sudo aptitude remove -y '?narrow(?installed,?version(deb.sury.org))'
+          dpkg --add-architecture i386 && apt update
+          apt install aptitude linux-libc-dev
+          aptitude remove -y '?narrow(?installed,?version(deb.sury.org))'
           cd wine-tkg-git 
           sed -i 's/_NOLIB32="false"/_NOLIB32="wow64"/' wine-tkg-profiles/advanced-customization.cfg
           sed -i 's/_use_ntsync=\"false\"/_use_ntsync=\"true\"/' customization.cfg
