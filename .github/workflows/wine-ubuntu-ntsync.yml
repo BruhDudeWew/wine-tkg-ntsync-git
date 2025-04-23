@@ -16,7 +16,7 @@ jobs:
       - name: Compilation
         run: |
           dpkg --add-architecture i386 && apt update
-          apt install aptitude linux-libc-dev
+          apt install -y aptitude linux-libc-dev
           aptitude remove -y '?narrow(?installed,?version(deb.sury.org))'
           cd wine-tkg-git 
           sed -i 's/_NOLIB32="false"/_NOLIB32="wow64"/' wine-tkg-profiles/advanced-customization.cfg
