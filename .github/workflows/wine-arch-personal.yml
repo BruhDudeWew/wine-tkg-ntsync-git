@@ -1,0 +1,41 @@
+name: Wine Arch Linux NTSYNC Personal CI
+
+on:
+  workflow_dispatch:
+    inputs:
+      wine_version:
+        description: "Wine Staging Version (Leave empty for latest wine staging version)"
+        required: false
+        type: string
+        default: ""
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile
+        env:
+          XDG_CACHE_HOME: /tmp/.cache
+          WINE_STAGING_VERSION: ${{ inputs.wine_version }}
+        run: |
+          echo -e "[multilib]\nInclude = /etc/pacman.d/mirrorlist" >> /etc/pacman.conf
+          pacman -Syu --noconfirm base-devel sudo linux-api-headers
+          useradd user -G wheel && echo "user ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+          chown user -R . && cd wine-tkg-git
+          sed -i 's/_NOLIB32="false"/_NOLIB32="wow64"/' wine-tkg-profiles/advanced-customization.cfg
+          sed -i 's/wayland_driver="false"/wayland_driver="true"/' customization.cfg
+          sed -i 's/_use_ntsync=\"false\"/_use_ntsync=\"true\"/' customization.cfg
+          sed -i 's/_use_esync=\"true\"/_use_esync=\"false\"/' customization.cfg
+          sed -i 's/_use_fsync=\"true\"/_use_fsync=\"false\"/' customization.cfg
+          if [[ -n $WINE_STAGING_VERSION ]]; then sed -i 's/_staging_version=""/_staging_version="'"${WINE_STAGING_VERSION}"'"/' customization.cfg; fi
+          sed -i 's/_protonify="false"/_protonify="true"/' customization.cfg
+          sed -ie 's/-O2/-O3/ ; s/-msse3 -mfpmath=sse/-march=alderlake -mtune=alderlake/' wine-tkg-profiles/advanced-customization.cfg
+          su user -c "yes|PKGDEST=/tmp/wine-tkg makepkg --noconfirm -s"
+
+      - name: Archive the artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wine-tkg-build
+          path: /tmp/wine-tkg
