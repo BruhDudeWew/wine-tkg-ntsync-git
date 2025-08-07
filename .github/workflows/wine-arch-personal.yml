@@ -30,7 +30,6 @@ jobs:
           sed -i 's/_use_esync=\"true\"/_use_esync=\"false\"/' customization.cfg
           sed -i 's/_use_fsync=\"true\"/_use_fsync=\"false\"/' customization.cfg
           if [[ -n $WINE_STAGING_VERSION ]]; then sed -i 's/_staging_version=""/_staging_version="'"${WINE_STAGING_VERSION}"'"/' customization.cfg; fi
-          sed -i 's/_protonify="false"/_protonify="true"/' customization.cfg
           sed -ie 's/-O2/-O3/ ; s/-msse3 -mfpmath=sse/-march=alderlake -mtune=alderlake/' wine-tkg-profiles/advanced-customization.cfg
           su user -c "yes|PKGDEST=/tmp/wine-tkg makepkg --noconfirm -s"
 
